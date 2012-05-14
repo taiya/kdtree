@@ -11,10 +11,6 @@
 #ifndef _KDTREE_H_
 #define _KDTREE_H_
 
-#ifndef CPPONLY
-	#include "mex.h"
-#endif
-
 #include <vector>    // point datatype
 #include <math.h>    // fabs operation
 #include "MyHeaps.h" // priority queues
