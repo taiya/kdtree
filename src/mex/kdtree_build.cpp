@@ -1,7 +1,6 @@
 #include "KDTree.h"
-
-#ifndef CPPONLY
 #include "mex.h"
+
 // matlab entry point
 void retrieve_data( const mxArray* matptr, vector< vector<double> >& dataV, int& npoints, int& ndims){
     // retrieve pointer from the MX form
@@ -50,4 +49,3 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     double* pointer_to_tree = mxGetPr(plhs[0]);
     pointer_to_tree[0] = (long) tree;
 }
-#endif

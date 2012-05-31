@@ -1,6 +1,5 @@
 #include "KDTree.h"
 
-#ifndef CPPONLY
 #include "mex.h"
 void retrieve_tree( const mxArray* matptr, KDTree* & tree){
     // retrieve pointer from the MX form
@@ -28,4 +27,3 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     retrieve_tree( prhs[0], tree );
     tree -> ~KDTree();
 }
-#endif

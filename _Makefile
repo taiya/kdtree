@@ -20,7 +20,7 @@ ifndef MXX
 	ifeq ($(shell uname),Darwin)
 		MXX = mex
 		MEXEXT = $(shell mexext)
-		MXXFLAGS = -I/Users/ata2/MyApplications/matlab/extern/include
+		MXXFLAGS = -I/Applications/matlab/extern/include
 	endif
 	ifeq ($(shell uname),Linux)
 		MXX = /usr/local/matlab/bin/mex

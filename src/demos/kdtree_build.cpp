@@ -113,13 +113,12 @@ int test5(){
 	T1->print_tree();
 	return 0;	
 }
-int main (int argc, char * const argv[]) {
-	
+int kdtree_build_demo(){
 	//cout << "0) returned with status: " << test0() << endl; // ordered even number nodes construction
 	cout << "1) returned with status: " << test1() << endl; // even number                                                     
     // cout << "2) returned with status: " << test2() << endl; // odd  number nodes construction
     //cout << "3) returned with status: " << test3() << endl; // paper-based tree construction
     //cout << "4) returned with status: " << test4() << endl; // large scale tree construction
     //cout << "5) returned with status: " << test5() << endl; // large scale tree construction
-	return 0;
+    return 0;
 }

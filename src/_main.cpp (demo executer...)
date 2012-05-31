@@ -1,0 +1,15 @@
+#include <iostream>
+#include <QString>
+
+#include "kdtree_build_demo.hpp"
+
+int main(int argc, char *argv[]){
+    if(argc==0) cout << "requires 1 argument";
+    
+    QString testname(argv[0]);
+    if(testname=="build")   return kdtree_build_demo();
+    if(testname=="nn")      return kdtree_build_demo();
+        
+        
+    return 0;    
+}
