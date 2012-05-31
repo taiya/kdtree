@@ -1,5 +1,8 @@
-using namespace std;
 #include <iostream>
+#include "KDTree.h"
+
+using namespace std;
+
 int test1(){
 	int N = 8;
 	vector< Point > A(N, vector<double>(3,0));

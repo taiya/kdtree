@@ -1,15 +1,11 @@
 //============================================================================
 // Name        : KDTree.h
-// Version     : 1.3
+// Version     : 2.0
 // Copyright   : (c) Andrea Tagliasacchi - All Rights Reserved
 // Description : KDTree for n-dimensional points implementation
 // Note: tab size 4
-//
-// Feb 20, 2009: Created by Andrea Tagliasacchi
-// Mar 18, 2009: Corrected inverted distances bug in "k_closest_points"
 //============================================================================
-#ifndef _KDTREE_H_
-#define _KDTREE_H_
+#pragma once
 
 #include <vector>    // point datatype
 #include <math.h>    // fabs operation
@@ -25,9 +21,9 @@ typedef vector<double> Point;
 
 class Node{
 public:
-    double		key;		// the key (value along k-th dimension) of the split
-    int			LIdx;		// the index to the left cell  (-1 if none)
-	int			RIdx;		// the index to the right cell (-1 if none)
+    double		key;		///< the key (value along k-th dimension) of the split
+    int			LIdx;		///< the index to the left cell  (-1 if none)
+	int			RIdx;		///< the index to the right cell (-1 if none)
 
 	/**
 	 * A poiter back to the structure data of input points,
@@ -720,8 +716,3 @@ class KDTree {
 		return true;
 	}
 };
-
-#endif
-
-
-

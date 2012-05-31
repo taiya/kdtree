@@ -113,7 +113,7 @@ int test5(){
 	T1->print_tree();
 	return 0;	
 }
-int kdtree_build_demo(){
+int main(int, char**){
 	//cout << "0) returned with status: " << test0() << endl; // ordered even number nodes construction
 	cout << "1) returned with status: " << test1() << endl; // even number                                                     
     // cout << "2) returned with status: " << test2() << endl; // odd  number nodes construction
