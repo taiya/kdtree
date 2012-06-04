@@ -4,6 +4,14 @@
 #include "MyHeaps.h" // priority queues
 #include "float.h"   // max floating point number
 
+#ifdef mex_h
+    #define MATLAB
+#endif
+
+#ifdef MATLAB
+    #include "mex.h"
+#endif
+
 using namespace std;
 
 typedef vector<double> Point;
@@ -28,11 +36,30 @@ struct Node{
 
     Node(){ LIdx=RIdx=key=pIdx=-1; }
     inline bool isLeaf() const{ return pIdx>=0; }
+    
+    // Added by Pablo Sala, Nov 25, 2008
+    inline bool save(FILE* fId){
+		if(fwrite(&key,  sizeof(double), 1, fId) != 1) return false;
+		if(fwrite(&LIdx, sizeof(int),    1, fId) != 1) return false;
+		if(fwrite(&RIdx, sizeof(int),    1, fId) != 1) return false;
+		if(fwrite(&pIdx, sizeof(int),    1, fId) != 1) return false;
+        return false;
+	}
+
+    // Added by Pablo Sala, Nov 25, 2008
+	inline bool load(FILE* fId){
+		if(fread(&key,  sizeof(double), 1, fId) != 1) return false;
+		if(fread(&LIdx, sizeof(int),    1, fId) != 1) return false;
+		if(fread(&RIdx, sizeof(int),    1, fId) != 1) return false;
+		if(fread(&pIdx, sizeof(int),    1, fId) != 1) return false;
+        return false;
+	}
 };
 
 class KDTree{
     /// @{ kdtree constructor/destructor
     public:
+        KDTree(){}                           ///< Default constructor (only for load/save)
         KDTree(const vector<Point>& points); ///< tree constructor
         ~KDTree();                           ///< tree destructor
     private:
@@ -41,6 +68,12 @@ class KDTree{
         int heapsort(int dim, vector<int>& idx, int len);
     /// @}
         
+    /// @{ I/O functionality
+    public:
+        bool load(const char* filename);
+        bool save(const char *filename);        
+    /// @}
+            
     /// @{ basic info
     public:
         inline int size(){ return points.size(); } ///< the number of points in the kd-tree
@@ -62,7 +95,11 @@ class KDTree{
         void print_tree( int index=0, int level=0 ) const;
         void leaves_of_node( int nodeIdx, vector<int>& indexes );
     /// @}
-	
+
+#ifdef MATLAB
+    void mex_print_tree( int index = 0, int level = 0 );
+#endif     
+        
     /// @{ Knn Search & helpers
     public:
         void k_closest_points(const Point& Xq, int k, vector<int>& idxs, vector<double>& distances);
@@ -733,5 +770,144 @@ bool KDTree::lies_in_range( const Point& p, const Point& pMin, const Point& pMax
     for (int dim=0; dim < ndim; dim++)
         if( p[dim]<pMin[dim] || p[dim]>pMax[dim] )
             return false;
+    return true;
+}
+
+#ifdef MATLAB
+// Version of print_tree for Matlab  -  Added by Pablo Sala, Nov 25, 2008
+void KDTree::mex_print_tree(int index/*=0*/, int level/*=0*/){
+    Node* currnode = nodesPtrs[index];
+
+    char output[1024];
+
+    // leaf
+    if( currnode->pIdx >= 0 ){
+        sprintf(output, "--- %d --- ", currnode->pIdx+1); mexPrintf(output); //node is given in matlab indexes
+        for( int i=0; i<ndim; i++ )
+        {
+            sprintf(output, "%.04f ", points[ currnode->pIdx ][ i ]); mexPrintf(output);
+        }
+
+        mexPrintf("\n");
+    }
+    else
+    {
+        sprintf(output, "l(%d) - %.04f nIdx: %d\n", level%ndim, currnode->key, index);
+        mexPrintf(output);
+    }
+
+    // navigate the childs
+    if( currnode -> LIdx != -1 ){
+        for( int i=0; i<level; i++ ) mexPrintf("  ");
+        mexPrintf("left: ");
+        mex_print_tree( currnode->LIdx, level+1 );
+    }
+    if( currnode -> RIdx != -1 ){
+        for( int i=0; i<level; i++ ) mexPrintf("  ");
+        mexPrintf("right: ");
+        mex_print_tree( currnode->RIdx, level+1 );
+    }		
+}
+#endif
+
+/// Loads a KDtree from a file. Added by Pablo Sala, Nov 25, 2008
+bool KDTree::load(const char* filename){
+    // Open the input file:
+    FILE* fId = fopen(filename, "rb");
+    if(!fId) return false;
+
+    if(fread(&npoints, sizeof(int), 1, fId) != 1) return false;
+    if(fread(&ndim,    sizeof(int), 1, fId) != 1) return false;
+
+    // Load 'nodesPtrs':
+        nodesPtrs.reserve(npoints);
+
+        // Get the number of nodes:
+        int nodeCount;
+        if(fread(&nodeCount, sizeof(int), 1, fId) != 1) return false;
+
+        // Get each node:
+        for(int i=0; i<nodeCount; i++)
+        {
+            Node* node = new Node();
+            if(!node->load(fId)) return false;
+            nodesPtrs.push_back(node);
+        }
+
+    // Load 'points':
+        // Get the number of points:
+        int pointCount;
+        if(fread(&pointCount, sizeof(int), 1, fId) != 1) return false;
+
+        points.reserve(pointCount);
+
+        // Get each point:
+        for(int i=0; i<pointCount; i++)
+        {
+            // Get the dimension of the point:
+            int dim;
+            if(fread(&dim, sizeof(int), 1, fId) != 1) return false;
+
+            Point pt; pt.reserve(dim);
+
+            // Get each element of the point:
+            for(int k=0; k<dim; k++)
+            {
+                double x;
+                if(fread(&x, sizeof(double), 1, fId) != 1) return false;
+                pt.push_back(x);
+            }
+
+            points.push_back(pt);
+        }
+
+    // Close the input file:
+    fclose(fId);
+    return true;
+}
+
+/// Saves a KDtree to a file. Added by Pablo Sala, Nov 25, 2008
+bool KDTree::save(const char* filename){
+    // Create the output file:
+    FILE* fId = fopen(filename, "wb");
+    if(!fId) return false;
+
+    if(fwrite(&npoints, sizeof(int), 1, fId) != 1) return false;
+    if(fwrite(&ndim,	sizeof(int), 1, fId) != 1) return false;
+
+    // Save 'nodesPtrs':
+        // Save the number of nodes:
+        int nodeCount = nodesPtrs.size();
+        if(fwrite(&nodeCount, sizeof(int), 1, fId) != 1) return false;
+
+        // Save each node:
+        vector<Node*>::iterator it0;
+        for(it0=nodesPtrs.begin(); it0<nodesPtrs.end(); it0++)
+            if(!(*it0)->save(fId)) return false;
+
+    // Save 'points':
+        // Save the number of points:
+        int pointCount = points.size();
+        if(fwrite(&pointCount, sizeof(int), 1, fId) != 1) return false;
+
+        // Save each point:
+        vector<Point>::iterator it1;
+        for(it1=points.begin(); it1<points.end(); it1++)
+        {
+            // Save the dimension of the point:
+            int dim = it1->size();
+            if(fwrite(&dim, sizeof(int), 1, fId) != 1) return false;
+
+            // Save each element of the point:
+            vector<double>::iterator it2;
+            for(it2=it1->begin(); it2<it1->end(); it2++)
+            {
+                double x = *it2;
+                if(fwrite(&x, sizeof(double), 1, fId) != 1) return false;
+            }
+        }
+
+    // Close the output file:
+    fclose(fId);
     return true;
 }
