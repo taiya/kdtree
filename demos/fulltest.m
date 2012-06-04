@@ -1,6 +1,6 @@
 % kdtree_k_nearest_neighbors crash when passed with only one argument
 clc, clear, close all;
-rand('twister',1);
+rand('twister',1); %#ok<RAND>
 p = rand( 250, 2 );
 hold on; xlim( [0 1] ); ylim( [0 1] ); axis equal;
 hdata = plot(p(:,1),p(:,2), '.b');
@@ -23,7 +23,7 @@ circle = zeros( 0,2 );
 theta = linspace(0,2*pi,100);
 for i=1:100
     [x,y] = pol2cart( theta(i),1 );
-    circle(end+1,:) = [x*qradii+qpoint(1),y*qradii+qpoint(2)]; %#ok<AGROW>
+    circle(end+1,:) = [x*qradii+qpoint(1),y*qradii+qpoint(2)]; %#ok<SAGROW>
 end
 hball = plot(p(idxs,1), p(idxs,2), '+g');
 line( circle(:,1), circle(:,2), 'color', 'g' );
