@@ -13,6 +13,7 @@
 % 
 % Is it normal? (code below)
 
+clc, clear, close all;
 dim = 4;
 np = 5e4;
 rr = RandStream('mrg32k3a','Seed',1);
@@ -23,12 +24,19 @@ X2 = rand(rr,np,dim);
 tree = kdtree_build(X2);
 nbn = 1;
 [idxs1, dists1] = deal(zeros(nbn,np));
+
+tic 
 for i = 1:np
   [idxs1(:,i),dists1(:,i)] = kdtree_k_nearest_neighbors(tree,X1(i,:),nbn);
 end
+toc
+
+tic
 idxs2 = kdtree_nearest_neighbor(tree,X1)';
+toc
+
 kdtree_delete(tree);
 
-% check same resukls
+% check same results
 dists2 = sqrt(sum((X1-X2(idxs1,:)).^2,2))';
 max(abs(idxs1(:)-idxs2(:))),max(abs(dists1(:)-dists2(:)))
