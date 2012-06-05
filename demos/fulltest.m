@@ -39,6 +39,11 @@ for i=1:numel(idxs)
 end
 
 legend([hdata, hrange, hball, hknn], 'dataset', 'range query', 'ball query', 'knn query results');
+axis equal
+xlim([-.1 1.1]);
+ylim([-.1 1.1]);
+axis off
+set(gcf,'color','white');
 
 % cleanup
 kdtree_delete( tree );

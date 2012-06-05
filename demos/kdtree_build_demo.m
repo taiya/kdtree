@@ -1,22 +1,25 @@
-%% KDTREE_BUILD_DEMO: illustrates the functionalities of kdtree_build
+%% KDTREE_BUILD_DEMO: performances achieved by the preprocessing
+% measure tree construction time
 clc, clear, close all;
-mex kdtree_build.cpp 
-disp('compiled.');
-p = rand( 10, 3 );
-tree = kdtree_build( p );
-disp(sprintf('tree structure pointer: %d',tree ));
-return;
+startValue = 1e3;
+doublings = 10;
 
-%% KDTREE_BUILD_DEMO2: illustrates performances achieved by the preprocessing
-% measure preprocessing time
-clc, clear, close all;
-N = [1000, 2000, 4000, 8000, 16000, 32000, 64000];
-times = zeros( size(N) );
-for i=1:length(N)
-    disp(i);
-    tic
-    p = rand( N(i), 3 );
-    tree = kdtree_build( p );
-    times(i) = toc;   
+x = zeros(doublings,1);
+y = zeros(doublings,1);
+
+for i=1:doublings
+   value = startValue * 2^(i-1);
+   p = rand( value, 2 );
+   tic;
+   tree = kdtree_build( p );
+   y(i) = toc;
+   x(i) = value;
+   disp(sprintf('building tree of %d points took %f seconds',value,y(i)));
+   kdtree_delete( tree );
 end
-return;
+
+
+figure; loglog(x, y, '.b'); title('log-log plot')
+[coeff, r] = polyfit( log(x), log(y),1);
+disp(sprintf('t= %0.2g * n^(%0.2f)', exp(coeff(2)), coeff(1)))
+hold on, plot( x, exp(coeff(2))*x.^(coeff(1)), 'Color', 'red');

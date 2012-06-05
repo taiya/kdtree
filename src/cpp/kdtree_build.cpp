@@ -17,8 +17,7 @@ int test0(){
 	return 0;
 }
 int test1(){
-	int N = 8;
-	vector< Point > A(N, vector<double>(3,0));
+	vector< Point > A(8, vector<double>(3,0));
 	A[0][0] = 200; A[0][1] = 300; A[0][2] = 400;
 	A[1][0] = 100; A[1][1] = 200; A[1][2] = 300;
 	A[2][0] = 600; A[2][1] = 100; A[2][2] = 500;
@@ -115,8 +114,8 @@ int test5(){
 }
 int main(int, char**){
 	//cout << "0) returned with status: " << test0() << endl; // ordered even number nodes construction
-	cout << "1) returned with status: " << test1() << endl; // even number                                                     
-    // cout << "2) returned with status: " << test2() << endl; // odd  number nodes construction
+    //cout << "1) returned with status: " << test1() << endl; // even number                                                     
+    cout << "2) returned with status: " << test2() << endl; // odd  number nodes construction
     //cout << "3) returned with status: " << test3() << endl; // paper-based tree construction
     //cout << "4) returned with status: " << test4() << endl; // large scale tree construction
     //cout << "5) returned with status: " << test5() << endl; // large scale tree construction

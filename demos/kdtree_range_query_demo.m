@@ -1,11 +1,5 @@
 clc, clear, close all;
 
-%% compile
-mex kdtree_build.cpp
-mex kdtree_nearest_neighbor.cpp
-mex kdtree_range_query.cpp
-disp('compiled');
-
 %% create data and query
 p = rand( 1000, 2 );
 tree = kdtree_build(p);

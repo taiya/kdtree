@@ -1,7 +1,7 @@
 % KDTREE_NEAREST_NEIGHBOR query a kd-tree for nearest neighbor
 %
 % SYNTAX
-% idxs = kdtree_nearest_neighbor( tree, P )
+% [idxs,dst] = kdtree_nearest_neighbor( tree, P )
 %
 % INPUT PARAMETERS
 %   tree: a pointer to the previously constructed k-d tree

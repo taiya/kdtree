@@ -1,9 +1,4 @@
-clc;
-
-%% compile
-mex kdtree_build.cpp
-mex kdtree_nearest_neighbor.cpp
-disp('compiled.');
+clc, clear, close all;
 
 %% create data and execute query
 p = rand( 20, 2 ); % input data

@@ -63,9 +63,8 @@ class KDTree{
         KDTree(const vector<Point>& points); ///< tree constructor
         ~KDTree();                           ///< tree destructor
     private:
-        vector<int> workarray;               ///< Used only for tree construction
-        int build_recursively(vector< vector<int> >& sortidx, vector<int>& pidx, int dim);       
-        int heapsort(int dim, vector<int>& idx, int len);
+        int build_recursively(vector< vector<int> >& sortidx, vector<char> &sidehelper, int dim);       
+        // int heapsort(int dim, vector<int>& idx, int len);
     /// @}
         
     /// @{ I/O functionality
@@ -102,6 +101,8 @@ class KDTree{
         
     /// @{ Knn Search & helpers
     public:
+        int closest_point(const Point& p);
+        void closest_point(const Point &p, int &idx, double &dist);
         void k_closest_points(const Point& Xq, int k, vector<int>& idxs, vector<double>& distances);
     private:
         void knn_search( const Point& Xq, int nodeIdx = 0, int dim = 0);
@@ -114,14 +115,6 @@ class KDTree{
         MaxHeap<double> pq;  	  ///< <key,idx> = <distance, node idx>
         bool terminate_search;    ///< true if k points have been found
     /// @}        
-
-    /// @{ Nearest neighbor query
-    public: 
-        int closest_point(Point p);
-        int closest_point(Point p, double& neigh_dst);
-    private: 
-        void check_border_distance(int nodeIdx, int dim, Point pnt, double& cdistsq, int& idx);
-    /// @}
 
 	/// @{ Points in hypersphere (ball) query
     public: 
@@ -144,49 +137,6 @@ class KDTree{
 //                                  
 //----------------------------------------------------------------------------------------
 
-/// Heapsort algorithm used by fast KDtree construction
-/// Note: this is copied almost verbatim from the wikipedia page (11/9/05): 
-/// http://en.wikipedia.org/wiki/Heapsort
-int KDTree::heapsort(int dim, vector<int>& idx, int len){
-    unsigned int n = len;
-    unsigned int i=len/2;
-    unsigned int parent, child;
-    int t;
-
-    for (;;) {
-        if (i>0) {
-            i--;
-            t = idx[i];
-        } else {
-            n--;
-            if (n ==0)
-                return 0;
-            t = idx.at(n);
-            idx[n] = idx[0];
-        }
-
-        parent = i;
-        child = i*2+1;
-
-        while (child < n) {
-            if ((child +1 < n) && (points[idx[child+1]][dim]>points[idx[child]][dim])) {
-                    child++;
-            }
-                if(points[idx[child]][dim]> points[t][dim]) {
-                    idx[parent] = idx[child];
-                    parent = child;
-                    child = parent*2+1;
-                }
-                else {
-                    break;
-                }
-        }
-        idx[parent] = t;
-    } // end of for loop
-    return 0;
-}
-
-
 /**
  * Creates a KDtree filled with the provided data.
  *
@@ -200,48 +150,23 @@ KDTree::KDTree(const vector<Point>& points){
     this -> ndim      = points[0].size();
     this -> points    = points;
     nodesPtrs.reserve( npoints );
-    workarray.resize( npoints, -1 ); //used in sorting based construction
-
-    // create the heap structure to support the tree creation
+    
+    // used for sort-based tree construction
+    // tells whether a point should go to the left or right 
+    // array in the partitioning of the sorting array
+    vector<char> sidehelper(npoints,'x');
+    
+    // Invoke heap sort generating indexing vectors
+    // sorter[dim][i]: in dimension dim, which is the i-th smallest point?
     vector< MinHeap<double> > heaps(ndim, npoints);
     for( int dIdx=0; dIdx<ndim; dIdx++ )
         for( int pIdx=0; pIdx<npoints; pIdx++ )
             heaps[dIdx].push( points[pIdx][dIdx], pIdx );
-
-    // Invoke heap sort generating indexing vectors
-    // indexes[dim][i]: in dimension dim, which is the index of the i-th smallest element?
-    vector< vector<int> > indexes( ndim, vector<int>(npoints,0) );
+    vector< vector<int> > sorter( ndim, vector<int>(npoints,0) );
     for( int dIdx=0; dIdx<ndim; dIdx++ )
-        heaps[dIdx].heapsort( indexes[dIdx] );
+        heaps[dIdx].heapsort( sorter[dIdx] );
 
-    // Invert the indexing structure!!
-    // srtidx[dim][j]: in dimension dim, which is ordering number of point j-th?
-    // the j-th smallest entry in dim dimension
-    vector< vector<int> > srtidx( ndim, vector<int>(npoints,0) );
-    for (unsigned int dim=0; dim<indexes.size(); dim++)
-        for (unsigned int i=0; i < indexes[dim].size(); i++)
-            srtidx[dim][indexes[dim][i]] = i;
-
-    // DEBUG: visualize indexes
-    #ifdef DEBUG
-    cout << "indexing matrix" << endl;
-    for (unsigned int j=0; j <indexes.size(); j++){
-        for (unsigned int i=0; i < indexes[j].size(); i++)
-            cout << indexes[j][i] << " ";
-        cout << endl;
-    }
-    cout << "sortindex matrix" << endl;
-    for (unsigned int j=0; j <srtidx.size(); j++){
-        for (unsigned int i=0; i < srtidx[j].size(); i++)
-            cout << srtidx[j][i] << " ";
-        cout << endl;
-    }
-    #endif
-
-    // First partition is on every single point ([1:npoints])
-    vector<int> pidx(npoints,0);
-    for (int i = 0; i < npoints; i++) pidx[i] = i;
-    build_recursively(srtidx, pidx, 0);
+    build_recursively(sorter, sidehelper, 0);
 }
 
 KDTree::~KDTree(){
@@ -254,110 +179,82 @@ KDTree::~KDTree(){
  * Algorithm that recursively performs median splits along dimension "dim"
  * using the pre-prepared information given by the sorting.
  *
- * @param sortidx: the back indexes produced by sorting along every dimension used
- *                 for linear time median computation
+ * @param sortidx: the back indexes produced by sorting along every dimension used for median computation
  * @param pidx:    a vector of indexes to active elements
- *
  * @param dim:     the current split dimension
  *
  * @note this is the memory-friendly version
  */
-int KDTree::build_recursively(vector< vector<int> >& sortidx, vector<int>& pidx, int dim){
-    #ifdef DEBUG
-    cout << endl << endl << "received current vector: ";
-    for( unsigned int i=0; i< pidx.size(); i++ )
-        cout << pidx[ i ] << " ";
-    cout << endl;
-    #endif
+void print_sorter(const char* message, vector< vector<int> >& srtidx){
+    cout << message << endl;
+    for (unsigned int j=0; j <srtidx.size(); j++){
+        for (unsigned int i=0; i < srtidx[j].size(); i++)
+            cout << srtidx[j][i] << " ";
+        cout << endl;
+    }    
+}
+int KDTree::build_recursively(vector< vector<int> >& sorter, vector<char>& sidehelper, int dim){
+    // Current number of elements
+    int numel = sorter[dim].size();
     
     // Stop condition
-    if(pidx.size() == 1) {
+    if(numel == 1) {
         Node *node = new Node();		// create a new node
         int nodeIdx = nodesPtrs.size(); // its address is
         nodesPtrs.push_back( node ); 	// important to push back here
         node->LIdx = -1;				// no child
         node->RIdx = -1;    			// no child
-        node->pIdx = pidx[0]; 			// the only index available
+        /// @todo take it from sorter
+        node->pIdx = sorter[dim][0];    // the only index available
         node->key = 0;					// key is useless here
         return nodeIdx;
     }
     
-    // allocate the vectors
-    vector<int> Larray;
-    vector<int> Rarray;
-    Larray.reserve( pidx.size()/2 + (pidx.size()%2==0 ? 0:1) );
-    Rarray.reserve( pidx.size()/2 );
+    // defines median offset
+    // NOTE: pivot goes to the LEFT sub-array
+    int iMedian = floor((numel-1)/2.0);
+    int pidxMedian = sorter[dim][iMedian];
+    int nL = iMedian+1;
+    int nR = numel-nL;
     
-    // initialize the "partition" array
-    // Setting parray to -1 indicates we are not using the point
-    for (int i = 0; i < npoints; i++)
-        workarray[i] = -1;
-    for (unsigned int i = 0; i < pidx.size(); i++)
-        workarray[ sortidx[dim][pidx[i]] ] = pidx[i];
-    
-    #ifdef DEBUG
-    cout << "work array: ";
-    for( unsigned int i=0; i< workarray.size(); i++ )
-        cout << workarray[ i ] << " ";
-    cout << endl;
-    #endif
-    
-    int pivot = -1; //index of the median element
-    if((double)pidx.size()*log((double)pidx.size()) < npoints) {
-        Larray.resize( pidx.size()/2 + (pidx.size()%2==0 ? 0:1), -1 );
-        Rarray.resize( pidx.size()/2, -1 );
-        heapsort(dim,pidx,pidx.size());
-        std::copy(pidx.begin(), pidx.begin()+Larray.size(), Larray.begin());
-        std::copy(pidx.begin()+Larray.size(), pidx.end(),   Rarray.begin());
-        pivot = pidx[(pidx.size()-1)/2];
+    // Assign l/r sides
+    for(int i=0; i<sorter[dim].size(); i++){
+        int pidx = sorter[dim][i];
+        sidehelper[ pidx ] = (i<=iMedian) ? 'l':'r';
     }
-    else{
-        // The middle valid value of parray is the pivot,
-        // the left go to a node on the left, the right
-        // and the pivot go to a node on the right.
-        unsigned int TH = (pidx.size()-1)/2; //defines median offset
-        unsigned int cnt = 0; //number of points found
-        for (int i=0; i < npoints; i++) {
-            // Is the current point not in the current selection? skip
-            if (workarray[i] == -1)
-                continue;
     
-            // len/2 is on the "right" of pivot.
-            // Pivot is still put on the left side
-            if (cnt == TH) {
-                pivot = workarray[i];
-                Larray.push_back( workarray[i] );
-            } else if (cnt > TH)
-                Rarray.push_back( workarray[i] );
-            else
-                Larray.push_back( workarray[i] );
-    
-            // Don't overwork, if we already read all the necessary just stop.
-            cnt++;
-            if(cnt>pidx.size())
-                break;
+    // allocate the vectors initially with invalid data
+    vector< vector<int> > Lsorter(ndim, vector<int>(nL,-1));
+    vector< vector<int> > Rsorter(ndim, vector<int>(nR,-1));
+
+    for(int idim=0; idim<ndims(); idim++){
+        int iL=0, iR=0;
+        for(int i=0; i<sorter[idim].size(); i++){
+            int pidx = sorter[idim][i];
+            if(sidehelper[pidx]=='l')
+                Lsorter[idim][iL++] = pidx;
+            if(sidehelper[pidx]=='r')
+                Rsorter[idim][iR++] = pidx;
         }
     }
     
-    #ifdef DEBUG
-    cout << "passing L: ";
-    for( unsigned int i=0; i< Larray.size(); i++ )
-        cout << Larray[ i ] << " ";
-    cout << endl;
-    cout << "passing R: ";
-    for( unsigned int i=0; i< Rarray.size(); i++ )
-        cout << Rarray[ i ] << " ";
-    cout << endl;
-    #endif
+#if DEBUG
+    if(numel>2){
+        cout << "---- SPLITTING along " << dim << endl;
+        print_sorter("original: ", sorter);
+        print_sorter("L: ", Lsorter);
+        print_sorter("R: ", Rsorter);
+    }
+#endif
     
     // CREATE THE NODE
     Node* node = new Node();
     int nodeIdx = nodesPtrs.size(); //why it's not +1? should not happend after push back? -> no since size() is the index of last element+1!!
     nodesPtrs.push_back( node ); //important to push back here
     node->pIdx  	= -1; //not a leaf
-    node->key  		= points[ pivot ][ dim ];
-    node->LIdx 		= build_recursively( sortidx, Larray, (dim+1)%ndim );
-    node->RIdx 		= build_recursively( sortidx, Rarray, (dim+1)%ndim );
+    node->key  		= points[ pidxMedian ][ dim ];
+    node->LIdx 		= build_recursively( Lsorter, sidehelper, (dim+1)%ndim );
+    node->RIdx 		= build_recursively( Rsorter, sidehelper, (dim+1)%ndim );
     return nodeIdx;
 }
 
@@ -426,9 +323,10 @@ void KDTree::print_tree( int index/*=0*/, int level/*=0*/ ) const{
  * k-NN query: computes the k closest points in the database to a given point
  * and returns their indexes.
  *
- * @param Xq the query point
- * @param k  the number of neighbors to search for
- * @param idxsInRange the indexes of the points found
+ * @param Xq            the query point
+ * @param k             the number of neighbors to search for
+ * @param idxs          the search results 
+ * @param distances     the distances from the points
  *
  */
 void KDTree::k_closest_points(const Point& Xq, int k, vector<int>& idxs, vector<double>& distances){
@@ -542,6 +440,22 @@ void KDTree::leaves_of_node( int nodeIdx, vector<int>& indexes ){
     leaves_of_node( node->RIdx, indexes );
 }
 
+void KDTree::closest_point(const Point &p, int& idx, double& dist){
+    vector<int> idxs;
+    vector<double> dsts;
+    k_closest_points(p,1,idxs,dsts);
+    idx = idxs[0];
+    dist = dsts[0];
+    return;
+}
+
+int KDTree::closest_point(const Point &p){
+    int idx;
+    double dist;
+    closest_point(p,idx,dist);
+    return idx;
+}
+
 /** @see knn_search
  * this function was in the original paper implementation.
  * Was this function useful? How to implement the "done"
@@ -601,84 +515,6 @@ double KDTree::bounds_overlap_ball(const Point& Xq){
     return true;
 }
 
-/// Computes the closest point in the set to the query point "p"
-int KDTree::closest_point(Point p){
-    double neigh_dst = 0;
-    return closest_point(p, neigh_dst);
-}
-int KDTree::closest_point(Point p, double& neigh_dst){
-    // search closest leaf
-    int dim = 0; // variable to cycle through dimensions
-    Node* leaf = nodesPtrs[0];
-    for (;;) {
-        // Is leaf node... this is my stop
-        if( leaf->pIdx >= 0 )
-            break;
-
-        // Not a leaf... browse through
-        if( p[dim] <= leaf->key )
-            leaf = nodesPtrs[ leaf -> LIdx ];
-        else
-            leaf = nodesPtrs[ leaf -> RIdx ];
-        dim = (dim + 1) % ndim;
-    }
-
-    double cdistsq = distance_squared( p, points[leaf->pIdx] ); 	// best distance at the moment
-    // cout << "first approximation: " << leaf->idx+1 << endl;
-    int closest_neighbor = leaf->pIdx;
-    check_border_distance(ROOT, 0, p, cdistsq, closest_neighbor); 		//check if anything else can do better
-    
-    neigh_dst = sqrt( cdistsq );
-    return closest_neighbor;
-}
-
-/** @see closest_point
- *
- * This function is the algorithm in support of "closest_point" for
- * closest point computation.
- *
- * @param nodeIdx the index of the node to check for the current recursion
- * @param dim     the dimension to check in the current recursion
- * @param pnt     the query point
- * @param cdistsq the euclidean distance for query to the point "idx"
- * @param idx     the index to the "currently" valid closest point
- */
-void KDTree::check_border_distance(int nodeIdx, int dim, Point pnt, double& cdistsq, int& idx){
-    Node* node = nodesPtrs[ nodeIdx ];
-    // cout << "checking node: " << node->idx+1 << endl;
-
-    // Are we at a leaf node? check if condition and close recursion
-    if( node->pIdx >= 0 ){
-        // is the leaf closer in distance?
-        float dsq = distance_squared(pnt, points[ node->pIdx ] );
-        if (dsq < cdistsq){
-            cdistsq = dsq;
-            idx = node->pIdx;
-            // cout << "updated optimal with: " << node -> idx+1 << endl;
-        }
-        return;
-    }
-
-    // The distance squared along the CURRENT DIMENSION between the point and the key
-    float ndistsq = (node->key - pnt[dim])*(node->key - pnt[dim]);
-    // cout << "distance to key: " << ndistsq << " optimal current distance: " << cdistsq << "(dim:"<<dim<<")"<<endl;
-
-    // If the distance squared from the key to the current value is greater than the
-    // nearest distance, we need only look in one direction.
-    if (ndistsq > cdistsq) {
-        if (node->key > pnt[dim])
-            check_border_distance(node->LIdx, (dim+1)%ndim, pnt, cdistsq, idx);
-        else
-            check_border_distance(node->RIdx, (dim+1)%ndim, pnt, cdistsq, idx);
-    }
-    // If the distance from the key to the current value is less than the nearest distance,
-    // we still need to look in both directions.
-    else {
-        //cout << "both directions need to be checked" << endl;
-        check_border_distance(node->LIdx, (dim+1)%ndim, pnt, cdistsq, idx);
-        check_border_distance(node->RIdx, (dim+1)%ndim, pnt, cdistsq, idx);
-    }
-}
 
 /**
  * Query all points at distance less or than radius from point

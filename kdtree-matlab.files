@@ -40,3 +40,4 @@ toolbox/kdtree_nearest_neighbor.m
 toolbox/kdtree_print.m
 toolbox/kdtree_range_query.m
 toolbox/kdtree_save.m
+src/old.h
