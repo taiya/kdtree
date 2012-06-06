@@ -1,10 +1,22 @@
 clc, clear, close all;
 
-% P = rand( 250, 2 );
-% T = kdtree_build(P);
-% kdtree_save(T,'mytree.txt');
+% Input data
+data = rand(250,2);
 
-P = rand(250,2);
-T = kdtree(P);
+% Build tree (now auto-allocated)
+kdtree = KDTree(data);
 
-idx = T.nn(rand(1,2))
+% Nearest neighbors
+query = rand(10,2);
+idxs1 = kdtree.nn(query);
+
+% K nearest neighbors
+K = 10;
+query = rand(1,2);
+idxs2 = kdtree.knn(query,K);
+
+% Ball query
+radii = .5;
+idxs3 = kdtree.ball(query, radii);
+
+save matlab.mat kdtree

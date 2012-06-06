@@ -1,5 +1,5 @@
 % Matlab class
-classdef kdtree < handle
+classdef KDTree < handle
     %------------------------------------------------------------------------
     %
     %                             PROPERTIES
@@ -16,7 +16,7 @@ classdef kdtree < handle
     %------------------------------------------------------------------------
     methods
         %--- Constructor
-        function kd = kdtree(p)
+        function kd = KDTree(p)
             if nargin==1
                 kd.PTR = kdtree_build(p);
             else
@@ -32,19 +32,30 @@ classdef kdtree < handle
         end
         
         %--- Queries
-        function nIdxs = nn(kd,query)
-            nIdxs = kdtree_nearest_neighbor(kd.PTR,query);
+        function idxs = nn(kd,query)
+            idxs = kdtree_nearest_neighbor(kd.PTR,query);
         end
-        function 
+        function [idxs,dists] = knn(kd,query,n)
+            [idxs,dists] = kdtree_k_nearest_neighbors(kd.PTR,query,n);
+        end
+        function idxs = ball(kd,query,radius)
+            idxs = kdtree_ball_query(kd.PTR,query,radius);
+        end
         
         %--- Save/Load from file
         function b = saveobj(kd)
-            disp('SAVE: nothing done!');
+            disp('saving...')
+%             error('save not implemented');
             b = [];
         end
         function b = loadobj(kd)
-            disp('LOAD: nothing done!');
+            error('load not implemented');
             b = kdtree();
+        end        
+    end
+    methods(Static)
+        function compile()
+            kdtree_compile();
         end        
     end
 end
