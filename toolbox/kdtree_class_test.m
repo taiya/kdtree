@@ -17,6 +17,9 @@ idxs2 = kdtree.knn(query,K);
 
 % Ball query
 radii = .5;
+query = rand(1,2);
 idxs3 = kdtree.ball(query, radii);
 
-save matlab.mat kdtree
+
+% out = kdtree.saveobj()
+save matlab.mat

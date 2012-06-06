@@ -4,13 +4,8 @@
 #include "MyHeaps.h" // priority queues
 #include "float.h"   // max floating point number
 
-#ifdef mex_h
-    #define MATLAB
-#endif
-
-#ifdef MATLAB
-    #include "mex.h"
-#endif
+#define MATLAB
+#include "mex.h"
 
 using namespace std;
 
@@ -96,12 +91,12 @@ class KDTree{
     /// @}
 
 #ifdef MATLAB
-    void mex_print_tree( int index = 0, int level = 0 );
-    
-    void from_matlab_matrix(const mxArray* mat){}        
-    void to_matlab_matrix(mxArray* mat){
-           
-    }
+    /// Prints to std-output
+    void mex_print_tree( int index = 0, int level = 0 );  
+    /// Stores the kdtree in a matlab variable
+    mxArray* to_matlab_matrix();
+    /// Retrieves the kdtree from a matlab variable
+    void from_matlab_matrix(const mxArray* matstruct);
     
     /// Retrieves tree pointer stored in matlab
     static KDTree* retrieve_pointer(const mxArray* matptr){
@@ -273,7 +268,7 @@ int KDTree::build_recursively(vector< vector<int> >& sorter, vector<char>& sideh
     
     // CREATE THE NODE
     Node* node = new Node();
-    int nodeIdx = nodesPtrs.size(); //why it's not +1? should not happend after push back? -> no since size() is the index of last element+1!!
+    int nodeIdx = nodesPtrs.size(); //size() is the index of last element+1!!
     nodesPtrs.push_back( node ); //important to push back here
     node->pIdx  	= -1; //not a leaf
     node->key  		= points[ pidxMedian ][ dim ];

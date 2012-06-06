@@ -30,7 +30,7 @@ TARGETS = $(SOURCES:%.cpp=%.$(MEXEXT))
 # produces an output with filename expressed by the "first" of elements from  
 # which it depends ($< or right side of ":")                                  
 #------------------------------------------------------------------------------#
-#HDRS = KDTree.h MyHeaps.h
+HDRS = KDTree.h MyHeaps.h
 
 #--- Default rule (called when you just "make")
 all: $(TARGETS)
@@ -41,7 +41,7 @@ debug: all
 
 ##--- Compile MEX toolbox
 %.$(MEXEXT) : %.cpp $(HDRS)
-	$(MXX) $(MXXFLAGS) $<      
+	$(MXX) $(MXXFLAGS) -I/Applications/matlab.app/extern/include $<      
 
 ##--- Clean steps
 clean:
@@ -60,14 +60,12 @@ dist:
 	mkdir $(ARCHIVENAME)
 	cp *.$(MEXEXT) $(ARCHIVENAME)
 	cp *.m $(ARCHIVENAME)
-	cp -L *.h $(ARCHIVENAME)
+	cp *.h $(ARCHIVENAME)
 	cp *.cpp $(ARCHIVENAME)
-	cp CHANGES $(ARCHIVENAME)
-	cp TODO $(ARCHIVENAME)
-	cp README $(ARCHIVENAME)
 	cp Makefile $(ARCHIVENAME)
+	cp ../CHANGES $(ARCHIVENAME)
+	cp ../TODO $(ARCHIVENAME)
+	cp ../README $(ARCHIVENAME)
 	#tar -cvf $(ARCHIVENAME).tar.gz $(ARCHIVENAME)
 	zip -r -v ${ARCHIVENAME}.zip ${ARCHIVENAME}
 	rm -rf $(ARCHIVENAME)
-	echo $(VAR)
-	

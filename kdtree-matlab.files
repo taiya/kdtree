@@ -33,3 +33,4 @@ cppdemos/kdtree_k_nearest_neighbors.cpp
 cppdemos/kdtree_delete.cpp
 cppdemos/kdtree_build.cpp
 cppdemos/kdtree_ball_query.cpp
+toolbox/kdtree_from_matlab.cpp

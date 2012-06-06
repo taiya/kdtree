@@ -43,14 +43,13 @@ classdef KDTree < handle
         end
         
         %--- Save/Load from file
-        function b = saveobj(kd)
-            disp('saving...')
-%             error('save not implemented');
-            b = [];
+        function out = saveobj(kd)
+            out = kdtree_to_matlab(kd.PTR);
         end
-        function b = loadobj(kd)
+        
+        function tree = loadobj(kd)
+            tree = KDTree();
             error('load not implemented');
-            b = kdtree();
         end        
     end
     methods(Static)
