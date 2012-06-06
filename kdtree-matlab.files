@@ -1,10 +1,7 @@
 include/KDTree.h
 include/MyHeaps.h
 
-Makefile
 toolbox/Makefile
-cppdemos/Makefile
-
 toolbox/kdtree.m
 toolbox/kdtree_ball_query.m
 toolbox/kdtree_build.m
