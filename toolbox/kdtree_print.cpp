@@ -21,8 +21,7 @@ void retrieve_tree( const mxArray* matptr, KDTree* & tree)
 }
 
 // This function was created by Pablo Sala on November 25, 2008
-void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
-{
+void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     if(nlhs != 0 || nrhs != 1 ||
        !mxIsNumeric(prhs[0]))  // tree is an integer
     {

@@ -35,6 +35,7 @@ classdef kdtree < handle
         function nIdxs = nn(kd,query)
             nIdxs = kdtree_nearest_neighbor(kd.PTR,query);
         end
+        function 
         
         %--- Save/Load from file
         function b = saveobj(kd)

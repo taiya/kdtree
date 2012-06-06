@@ -70,7 +70,7 @@ class KDTree{
     /// @{ I/O functionality
     public:
         bool load(const char* filename);
-        bool save(const char *filename);        
+        bool save(const char *filename);
     /// @}
             
     /// @{ basic info
@@ -97,6 +97,30 @@ class KDTree{
 
 #ifdef MATLAB
     void mex_print_tree( int index = 0, int level = 0 );
+    
+    void from_matlab_matrix(const mxArray* mat){}        
+    void to_matlab_matrix(mxArray* mat){
+           
+    }
+    
+    /// Retrieves tree pointer stored in matlab
+    static KDTree* retrieve_pointer(const mxArray* matptr){
+        // retrieve pointer from the MX form
+        double* pointer0 = mxGetPr(matptr);
+        // check that I actually received something
+        if( pointer0 == NULL )
+            mexErrMsgTxt("varargin{1} must be a valid kdtree pointer\n");
+        // convert it to "long" datatype (good for addresses)
+        long pointer1 = (long) pointer0[0];
+        // convert it to "KDTree"
+        KDTree* tree = (KDTree*) pointer1;
+        // check that I actually received something
+        if( tree == NULL )
+            mexErrMsgTxt("varargin{1} must be a valid kdtree pointer\n");
+        if( tree->ndims() <= 0 )
+            mexErrMsgTxt("the k-D tree must have k>0");
+        return tree;
+    }
 #endif     
         
     /// @{ Knn Search & helpers
