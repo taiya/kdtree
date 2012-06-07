@@ -59,13 +59,14 @@ dist:
 	rm -rf $(ARCHIVENAME)
 	mkdir $(ARCHIVENAME)
 	cp *.$(MEXEXT) $(ARCHIVENAME)
+	cp *.mexmaci64 $(ARCHIVENAME)
+	cp *.mexw64 $(ARCHIVENAME)
 	cp *.m $(ARCHIVENAME)
 	cp *.h $(ARCHIVENAME)
 	cp *.cpp $(ARCHIVENAME)
 	cp Makefile $(ARCHIVENAME)
-	cp ../CHANGES $(ARCHIVENAME)
-	cp ../TODO $(ARCHIVENAME)
-	cp ../README $(ARCHIVENAME)
+	cp README $(ARCHIVENAME)
 	#tar -cvf $(ARCHIVENAME).tar.gz $(ARCHIVENAME)
 	zip -r -v ${ARCHIVENAME}.zip ${ARCHIVENAME}
 	rm -rf $(ARCHIVENAME)
+	mv ${ARCHIVENAME}.zip ../
