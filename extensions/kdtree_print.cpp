@@ -1,4 +1,6 @@
 #include "KDTree.h"
+
+#ifndef CPPONLY
 #include "mex.h"
 
 // This function code was taken from "kdtree_nearest_neighbor.cpp":
@@ -23,20 +25,18 @@ void retrieve_tree( const mxArray* matptr, KDTree* & tree)
 // This function was created by Pablo Sala on November 25, 2008
 void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[])
 {
-    if(nlhs != 0 || nrhs != 2 ||
-       !mxIsNumeric(prhs[0])  ||  // tree     is an integer
-       !mxIsChar(prhs[1]))        // filename is a  string
+    if(nlhs != 0 || nrhs != 1 ||
+       !mxIsNumeric(prhs[0]))  // tree is an integer
     {
-        mexErrMsgTxt("Incorrect Sintax\n\t kdtree_save(tree, filename),\n\twhere 'tree' is a kd-tree and 'filename' is a string\n");
+        mexErrMsgTxt("Incorrect Sintax\n\t kdtree_print(tree),\n\twhere 'tree' is a kd-tree\n");
     }
 
     // Retrieve the pointer to the kd-tree:
     KDTree* tree;
     retrieve_tree(prhs[0], tree);
 
-    // Retrieve the filename:
-    const char* filename = mxArrayToString(prhs[1]);
-
-    // Save the kd-tree:
-    tree->save(filename);
+    // Print the kd-tree:
+    tree->mex_print_tree();
 }
+
+#endif

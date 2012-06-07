@@ -9,3 +9,4 @@ src/Makefile
 build/*
 CMakeLists.txt.user
 *.exe
+*.mexmaci64

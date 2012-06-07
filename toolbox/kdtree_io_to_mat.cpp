@@ -22,14 +22,15 @@ mxArray* KDTree::to_matlab_matrix(){
     /// Sticks tree nodes into an 
     {
         /// Create memory
-        mxArray* nodes_mex = mxCreateNumericMatrix(nodesPtrs.size(), 3, mxINT64_CLASS, mxREAL);
-        int* nodes_data = (int*) mxGetData(nodes_mex);
+        mxArray* nodes_mex = mxCreateNumericMatrix(nodesPtrs.size(), 4, mxDOUBLE_CLASS, mxREAL);
+        double* nodes_data = (double*) mxGetData(nodes_mex);
         /// Fill data
-        for( int i=0; i<nodesPtrs.size(); i+=3 ){
-            nodes_data[i+0] = nodesPtrs[i]->LIdx;
-            nodes_data[i+1] = nodesPtrs[i]->RIdx;
-            nodes_data[i+2] = nodesPtrs[i]->pIdx;
-        }       
+        for( int i=0,off=0; i<nodesPtrs.size(); i++,off+=4 ){
+            nodes_data[off+0] = (double) nodesPtrs[i]->LIdx;
+            nodes_data[off+1] = (double) nodesPtrs[i]->RIdx;
+            nodes_data[off+2] = (double) nodesPtrs[i]->pIdx;
+            nodes_data[off+3] = (double) nodesPtrs[i]->key;
+        }
         mxSetField(matstruct, 0, "nodes", nodes_mex);
     }
     

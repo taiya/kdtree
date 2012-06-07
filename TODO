@@ -1,8 +1,3 @@
-KNOWN BUGS
-- the tree doesn't appear to be correctly created in the event there are nan values in the data-set. In my tests, the points need to be at least 50-60% non-nan for the tree to work as expected.
+BUGS
 - Distances returned by the BALL query seems to be SQUARED!! CHECK IT UP
 
-POSSIBLE ADDONS
-- psala@cs.toronto.edu did the extensions for SAVE/LOAD
-- add linear time median to the algorithm to obtain O(N LogN) complexity
-- accidentally call kdtree_delete twice on the same handle, matlab quits immediately. Would it be possible for the library to maintain an internal list of handles to avoid this problem? It would also allow implementation of a 'kdtree_delete_all' function, to free up all trees that have been created in a session. That's useful because if a piece of matlab code crashes before it gets to kdtree_delete then you can end up with an orphaned tree. It would be nice to have a 'kdtree_delete_all' function to free up all trees that have been created. Of course, this would require a list of trees to be maintained within the library.
