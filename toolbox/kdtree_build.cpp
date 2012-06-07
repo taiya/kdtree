@@ -1,5 +1,6 @@
 #include "KDTree.h"
 #include "mex.h"
+#include "matrix.h" //isNaN/isinf
 
 // matlab entry point
 void retrieve_data( const mxArray* matptr, vector< vector<double> >& dataV, int& npoints, int& ndims){
@@ -12,19 +13,25 @@ void retrieve_data( const mxArray* matptr, vector< vector<double> >& dataV, int&
     // retrieve amount of points
     npoints = mxGetM(matptr);
     ndims   = mxGetN(matptr);
- 
+
+    // Make sure !nan & !inf
+    for( int i=0; i<npoints*ndims; i++ ){
+        if( mxIsNaN( data[i] ) ) mexErrMsgTxt("input data contains NAN values.");
+        if( mxIsInf( data[i] ) ) mexErrMsgTxt("input data contains INF values!");
+    }
+    
     // FILL THE DATA STRUCTURES
 	dataV.resize(npoints, vector<double>(ndims));
 	for( int i=0; i<npoints; i++ )
-		for( int j=0; j<ndims; j++ )
+        for( int j=0; j<ndims; j++ )
 			dataV[i][j] = data[ i + j*npoints ]; 
 }
 void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){   
 	// check input
 	if( nrhs != 1 || !mxIsNumeric(prhs[0]) )
 		mexErrMsgTxt("A unique [kxN] matrix of points should be passed.\n");
-	
-	// retrieve the data
+	   
+    // retrieve the data
     vector< vector<double> > input_data;
     int npoints;
     int ndims;

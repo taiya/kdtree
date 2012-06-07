@@ -23,3 +23,8 @@ figure; loglog(x, y, '.b'); title('log-log plot')
 [coeff, r] = polyfit( log(x), log(y),1);
 disp(sprintf('t= %0.2g * n^(%0.2f)', exp(coeff(2)), coeff(1)))
 hold on, plot( x, exp(coeff(2))*x.^(coeff(1)), 'Color', 'red');
+
+%% Test nan values
+data = rand(100,4);
+data(1:10:end) = nan;
+kd = KDTree(data);

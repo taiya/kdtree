@@ -1,4 +1,13 @@
-% Matlab class
+% KDTree class
+% 
+% Build the data structure:
+% >> kd = KDTree(p);
+% 
+% Query the data structure:
+% >> [idxs,dists] = nn(kd,query)      % nearest neighbors
+% >> [idxs,dists] = knn(kd,query)     % k-nearest neighbors
+% >> [idxs,dists] = ball(kd,query)    % hyper-sphere query
+% >> idxs = range(kd,query)           % rectangular query
 classdef KDTree < handle
     %------------------------------------------------------------------------
     %
@@ -43,8 +52,9 @@ classdef KDTree < handle
             [idxs,dists] = kdtree_ball_query(kd.PTR,query,radius);
         end
         %--- Range query
-        function [idxs,dists] = range(kd, range)
-            [idxs,dists] = kdtree_range_query(kd.PTR, range);
+        % TODO: distances
+        function [idxs] = range(kd, range)
+            idxs = kdtree_range_query(kd.PTR, range);
         end
 
         %--- Save to .mat file
