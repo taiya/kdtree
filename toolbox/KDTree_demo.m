@@ -1,25 +1,34 @@
-%% KDTREE_BUILD_DEMO: performances achieved by the preprocessing
-% measure tree construction time
 clc, clear, close all;
-startValue = 1e3;
-doublings = 10;
+ 
+% Input data
+data = rand(1000,2);
+ 
+% Build tree (Memory automatically freed)
+kd = KDTree(data);
+ 
+% Nearest neighbors
+query = rand(10,2);
+nn_idxs = kd.nn(query);
+% disp(data(nn_idxs,:)); 
+ 
+% K nearest neighbors
+K = 10;
+query = rand(1,2);
+knn_idxs = kd.knn(query,K);
+% disp(data(knn_idxs,:)); 
 
-x = zeros(doublings,1);
-y = zeros(doublings,1);
+% Ball query
+radii = .5;
+query = rand(1,2);
+ball_idxs = kd.ball(query, radii);
+% disp(data(ball_idxs,:));
 
-for i=1:doublings
-   value = startValue * 2^(i-1);
-   p = rand( value, 2 );
-   tic;
-   tree = kdtree_build( p );
-   y(i) = toc;
-   x(i) = value;
-   disp(sprintf('building tree of %d points took %f seconds',value,y(i)));
-   kdtree_delete( tree );
-end
+% Support for save
+save matlab.mat kd;
 
+% Now simply reload without re-building!!
+clear all;
+load matlab.mat kd;
+ball_idxs = kd.ball(rand(1,2), .5);
 
-figure; loglog(x, y, '.b'); title('log-log plot')
-[coeff, r] = polyfit( log(x), log(y),1);
-disp(sprintf('t= %0.2g * n^(%0.2f)', exp(coeff(2)), coeff(1)))
-hold on, plot( x, exp(coeff(2))*x.^(coeff(1)), 'Color', 'red');
+delete matlab.mat

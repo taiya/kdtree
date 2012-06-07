@@ -4,7 +4,7 @@ CHANGES
 toolbox/KDTree.h
 toolbox/MyHeaps.h
 toolbox/Makefile
-toolbox/kdtree.m
+toolbox/KDTree.m
 toolbox/kdtree_ball_query.m
 toolbox/kdtree_build.m
 toolbox/kdtree_compile.m
