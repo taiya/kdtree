@@ -11,6 +11,7 @@ using namespace std;
 
 typedef vector<double> Point;
 
+
 /// The root node is stored in position 0 of nodesPtrs
 #define ROOT 0
 
@@ -82,7 +83,7 @@ class KDTree{
         if( pointer0 == NULL )
             mexErrMsgTxt("varargin{1} must be a valid kdtree pointer\n");
         // convert it to "long" datatype (good for addresses)
-        long pointer1 = (long) pointer0[0];
+        intptr_t pointer1 = (intptr_t) pointer0[0];
         // convert it to "KDTree"
         KDTree* tree = (KDTree*) pointer1;
         // check that I actually received something

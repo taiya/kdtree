@@ -8,7 +8,7 @@ void retrieve_tree( const mxArray* matptr, KDTree* & tree){
     if( pointer0 == NULL )
         mexErrMsgTxt("vararg{1} must be a valid k-D tree pointer\n");
     // convert it to "long" datatype (good for addresses)
-    long pointer1 = (long) pointer0[0];
+    intptr_t pointer1 = (intptr_t) pointer0[0];
     // convert it to "KDTree"
     tree = (KDTree*) pointer1;
     // check that I actually received something
