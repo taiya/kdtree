@@ -57,5 +57,5 @@ void mexFunction(int nlhs, mxArray * plhs[], int nrhs, const mxArray * prhs[]){
     /// Store pointer in matlab
     plhs[0] = mxCreateDoubleMatrix(1,1,mxREAL);
     double* pointer_to_tree = mxGetPr(plhs[0]);
-    pointer_to_tree[0] = (long) tree;
+    pointer_to_tree[0] = (intptr_t) tree;
 }
